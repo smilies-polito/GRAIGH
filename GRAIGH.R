@@ -1,3 +1,5 @@
+BiocManager::install("EnsDb.Hsapiens.v86")
+
 library(Matrix)
 library(dplyr)
 library(tidyr)
@@ -6,25 +8,30 @@ library(Signac)
 library(rtracklayer)
 library(rhdf5)
 library(ggplot2)
+library(EnsDb.Hsapiens.v86)
 
 
+gff <- readGFF("TMPDATA/Genehancer/GeneHancer_v5.15.gff")
 
-gff <- readGFF("DATA/Genehancer/GeneHancer_v5.15.gff")
+#GH_element <- read.csv(file = "TMPDATA/Genehancer/GeneHancer_AnnotSV_hg19_v5.15.txt", sep = "\t")
+GH_element <- read.csv(file = "TMPDATA/Genehancer/GeneHancer_AnnotSV_elements_v5.15.txt", sep = "\t")
+GH_score <- read.csv(file = "TMPDATA/Genehancer/GeneHancer_AnnotSV_gene_association_scores_v5.15.txt", sep = "\t")
 
-#GH_element <- read.csv(file = "DATA/Genehancer/GeneHancer_AnnotSV_hg19_v5.15.txt", sep = "\t")
-GH_element <- read.csv(file = "DATA/Genehancer/GeneHancer_AnnotSV_elements_v5.15.txt", sep = "\t")
-GH_score <- read.csv(file = "DATA/Genehancer/GeneHancer_AnnotSV_gene_association_scores_v5.15.txt", sep = "\t")
-
-matrix <- readMM("DATA/Human_PBMC/filtered_peak_bc_matrix/matrix.mtx")
-cells <- read.table("DATA/Human_PBMC/filtered_peak_bc_matrix/barcodes.tsv")
-features <- read.delim("DATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE) %>% unite(features, sep = "-")
+matrix <- readMM("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/matrix.mtx")
+cells <- read.table("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/barcodes.tsv")
+features <- read.delim("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE) %>% unite(features, sep = "-")
 
 row.names(matrix) <- features$features
 colnames(matrix) <- cells$V1
 
-SEU_obj <- CreateSeuratObject(counts = matrix, assay = "ATAC")
+CreateChromatinAssay(
+    counts = matrix,
+    sep = c("-", "-") #indicates which are the separators for the peak notation of the file
+    
+)
+SEU_obj <- CreateSeuratObject(counts = matrix, assay = "ATAC", )
 
-f <- read.delim("DATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE)
+f <- read.delim("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE)
 Peak_GRange <- GRanges(seqnames = f$V1, ranges =IRanges(start= f$V2 , end= f$V3))
 metadata(Peak_GRange) <- features
 
@@ -33,7 +40,7 @@ metadata(GH_GRange) <- gff[,-c(1:8)]
 
 overlaps <- findOverlaps(GH_GRange, Peak_GRange)
 
-connection_matrix <- sparseMatrix(
+connection_matrix <- sparseMatrix( 
   i = queryHits(overlaps),
   j = subjectHits(overlaps),
   dims = c(length(GH_GRange), length(Peak_GRange)),
@@ -54,6 +61,10 @@ GH_cells_matrix <- connection_matrix %*% matrix
 SEU_obj[["GH"]] <- CreateAssayObject(GH_cells_matrix)
 
 DefaultAssay(SEU_obj) <- "ATAC"
+
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
+seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+genome(annotations) <- "hg38"
 
 SEU_obj <- RunTFIDF(SEU_obj)
 SEU_obj <- FindTopFeatures(SEU_obj, min.cutoff = 'q0')
@@ -76,6 +87,9 @@ Idents(SEU_obj) <- "ATAC_snn_res.0.8"
 DimPlot(object = SEU_obj, label = TRUE, reduction = "umap.GH") + NoLegend()
 Idents(SEU_obj) <- "GH_snn_res.0.8"
 DimPlot(SEU_obj, label = TRUE, reduction = "umap.ATAC") + NoLegend()
+
+gene.activities <- GeneActivity(SEU_obj)
+
 
 write.table(gh_markers, file = "gh_markers.csv")
 

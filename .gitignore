@@ -1,6 +1,19 @@
+
+## R elements
 *.Rproj.user
 *.Rhistory
 *.RData
 *.Ruserdata
 *.Rproj
+*.Rprofile
+.Rhistory
+.RData
+.Ruserdata
+.Rproj
+.Rprofile
+renv.lock
+
+## folders
 TMP*/
+renv/
+.Rproj.user
