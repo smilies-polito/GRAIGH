@@ -72,7 +72,7 @@ The file must be put in `DATA` folder.
 To reproduce the analyses from _Martini et al., 2023_, run the `NSS.sif` container.
 
 ```
-singularity run --no-home --bind  /local/path/to/GRAIGH:/local/path/to/home/ GRAIGH.sif
+singularity run --no-home --bind  /local/path/to/graigh:/local/path/to/home/ GRAIGH.sif
 ```
 
 ## Repository structure
@@ -102,7 +102,7 @@ singularity run --no-home --bind  /local/path/to/GRAIGH:/local/path/to/home/ GRA
 ├── Source_Code                                 // Folder for the R code
 |    └── GRAIGH.R                               // R script for the analysis
 | 
-├── renv.lock                                   // R virtual environment lock file
+├── GRAIGH.def                                  // singularity recipe
 |
 └── README.md                                   // This README file          
 ```
