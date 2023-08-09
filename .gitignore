@@ -16,4 +16,6 @@ renv.lock
 ## folders
 TMP*/
 renv/
+
 .Rproj.user
+SEU_obj.rds
