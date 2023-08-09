@@ -69,14 +69,14 @@ specificity_analysis <- function(SEU, cell_type_table, cell_type_list, gene_sele
 ######## Loading Data #######
 
 # GH data
-gff <- readGFF("DATA/Genehancer/GeneHancer_v5.15.gff")
-GH_element <- read.csv(file = "DATA/Genehancer/GeneHancer_AnnotSV_elements_v5.15.txt", sep = "\t")
-GH_score <- read.csv(file = "DATA/Genehancer/GeneHancer_AnnotSV_gene_association_scores_v5.15.txt", sep = "\t")
+gff <- readGFF("TMPDATA/Genehancer/GeneHancer_v5.15.gff")
+GH_element <- read.csv(file = "TMPDATA/Genehancer/GeneHancer_AnnotSV_elements_v5.15.txt", sep = "\t")
+GH_score <- read.csv(file = "TMPDATA/Genehancer/GeneHancer_AnnotSV_gene_association_scores_v5.15.txt", sep = "\t")
 
 #scATAC-seq data
-matrix <- readMM("DATA/Human_PBMC/filtered_peak_bc_matrix/matrix.mtx")
-cells <- read.table("DATA/Human_PBMC/filtered_peak_bc_matrix/barcodes.tsv")
-features <- read.delim("DATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE) %>% unite(features, sep = "-")
+matrix <- readMM("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/matrix.mtx")
+cells <- read.table("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/barcodes.tsv")
+features <- read.delim("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE) %>% unite(features, sep = "-")
 features <- features[1:165376,]
 matrix <- matrix[1:165376,]
 row.names(matrix) <- features
@@ -85,7 +85,7 @@ colnames(matrix) <- cells$V1
 chrom_assay <- CreateChromatinAssay(
     counts = matrix,
     sep = c("-", "-"), 
-    fragments = "DATA/Human_PBMC/10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz",
+    fragments = "TMPDATA/Human_PBMC/10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz",
 )
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
 seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
@@ -98,7 +98,7 @@ rm(chrom_assay)
 #### Creation of the connection matrix ####
 
 # peak coordinates
-f <- read.delim("DATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE)
+f <- read.delim("TMPDATA/Human_PBMC/filtered_peak_bc_matrix/peaks.bed", header=FALSE)
 f <- f[1:165376,]
 Peak_GRange <- GRanges(seqnames = f$V1, ranges =IRanges(start= f$V2 , end= f$V3))
 metadata(Peak_GRange) <- as.list(features)
@@ -198,7 +198,7 @@ SEU_obj <- FindClusters(SEU_obj, resolution = 0.5, algorithm = 3)
 
 #Seurat Label transfer integration
 DefaultAssay(SEU_obj) <- "ACTIVITY"
-pbmc_rna <- readRDS("DATA/pbmc_10k_v3.rds")
+pbmc_rna <- readRDS("TMPDATA/pbmc_10k_v3.rds")
 
 transfer.anchors <- FindTransferAnchors(
     reference = pbmc_rna,
@@ -323,8 +323,6 @@ numbers <- as.data.frame(numbers)
 colnames(numbers) <- c("Accessibility", "Activity", "Delta")
 
 specificty_table <- cbind(specificty_table, numbers)
-
-write.CSV(specificty_table, file = "specificty_table.csv")
 
 
 FeaturePlot(SEU_obj, features = c("CD14"), pt.size = 2.5 , reduction = "umap.ATAC") + ggtitle("CD14 activity") + theme(plot.title = element_text(hjust = 0.5, size = 40, face = "bold"), axis.text = element_text(size=20), axis.title = element_text(size=30)) +
