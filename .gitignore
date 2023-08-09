@@ -11,7 +11,7 @@
 .Ruserdata
 .Rproj
 .Rprofile
-
+*.sif
 
 ## folders
 TMP*/
