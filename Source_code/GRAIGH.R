@@ -9,7 +9,6 @@ library(ggplot2)
 library(EnsDb.Hsapiens.v86)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(aricode)
-library(caret)
 
 #######
 
