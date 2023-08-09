@@ -60,5 +60,5 @@ Stage: build
 %runscript
     
     #!/bin/sh
-    echo "Welcome to the GRAIGH Project!"
-
+    echo "Starting GRAIGH analysis..."
+    Rscript Source_code/GRAIGH.R
