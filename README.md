@@ -1,3 +1,4 @@
 # GRAIGH
-Repository for GRAIGH method
-GO on the PUBLIC branch for the repository
+Repository for GRAIGH method.
+
+Go on the PUBLIC branch for the repository
